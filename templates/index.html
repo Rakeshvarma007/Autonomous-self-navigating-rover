@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rover Control Center</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f0f0f0;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-top: 20px;
+            width: 90%;
+            max-width: 700px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        h1 { color: #333; }
+
+        img {
+            width: 100%;
+            max-width: 640px;
+            border: 2px solid #333;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .stat-box {
+            font-size: 20px;
+            margin: 10px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            background: #fafafa;
+            border-radius: 8px;
+        }
+
+        .kill-switch {
+            background: #d9534f;
+            color: white;
+            padding: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            transition: background 0.3s;
+        }
+
+        .kill-switch:hover { background: #c9302c; }
+
+        .reset-btn {
+            background: #5bc0de;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .reset-btn:hover { background: #31b0d5; }
+
+        #state { color: #0275d8; }
+    </style>
+</head>
+
+<body>
+    
+    <div class="container">
+        <h1>AI Rover Telemetry</h1>
+
+        <img src="/video_feed" alt="Rover Camera Feed">
+
+        <div class="stat-box">
+            Status: <b id="state">Loading...</b> 
+        </div>
+
+        <div class="stat-box">
+            Ultrasonic Distance: <b id="dist">--</b> cm [cite: 19]
+        </div>
+
+        <button class="kill-switch" onclick="triggerKill()">🛑 EMERGENCY KILL SWITCH</button>
+        
+        <button class="reset-btn" onclick="resetRover()">🔄 Resume rover</button>
+    </div>
+
+    <script>
+        // Update Telemetry Data every 500ms
+        setInterval(function () {
+            fetch('/telemetry')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("state").innerText = data.state;
+                    document.getElementById("dist").innerText = data.distance;
+                    
+                    // Visual feedback for stops
+                    if(data.state.includes("STOP") || data.state.includes("HALT")) {
+                        document.getElementById("state").style.color = "red";
+                    } else {
+                        document.getElementById("state").style.color = "#0275d8";
+                    }
+                })
+                .catch(err => console.error("Telemetry error:", err));
+        }, 500);
+        
+        function triggerKill() {
+            if (confirm("Are you sure you want to stop the rover immediately?")) {
+                fetch('/kill_switch', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => alert("Rover Halted Safely."));
+            }
+        }
+
+        function resetRover() {
+            fetch('/reset_rover', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => alert("System Resumed."));
+        }
+    </script>
+    <div class="manual-controls" style="margin-top: 20px; border-top: 2px solid #ddd; padding-top: 15px;">
+    <h3>Manual controls</h3>
+    
+    <form action="/manual_control" method="POST">
+        
+        <button type="submit" name="command" value="forward" style="font-size:24px; padding:10px;">⬆️</button><br>
+        
+        <button type="submit" name="command" value="left" style="font-size:24px; padding:10px;">⬅️</button>
+        <button type="submit" name="command" value="stop" style="font-size:24px; padding:10px; color:red;">⏹ Stop</button>
+        <button type="submit" name="command" value="right" style="font-size:24px; padding:10px;">➡️</button><br>
+        
+        <button type="submit" name="command" value="backward" style="font-size:24px; padding:10px;">⬇️</button>
+    </form>
+
+    <br>
+
+    <form action="/resume_auto" method="POST">
+        <button type="submit" style="padding: 10px; background-color: #0275d8; color: white; border: none; border-radius: 5px;">
+            🔄 Resume Autonomous Mode
+        </button>
+    </form>
+</div>
+    
+</body>
+</html>
