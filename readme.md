@@ -50,7 +50,7 @@ Upload the code to your Arduino Uno or Nano.
 
 Clone the Repository:
 
-git clone https://github.com/yourusername/your-repo-name.git
+git clone https://github.com/Rakeshvarma007/Autonomous-self-navigating-rover
 
 cd your-repo-name
 
@@ -83,3 +83,4 @@ Autonomous Mode: \* If the distance is < 25cm, the rover enters "TOO CLOSE" mode
 If a Stop Sign is detected, it pauses for 3 seconds before clearing the sign.
 
 If an obstacle is detected in the center of the camera frame, it swerves to an open path.
+
